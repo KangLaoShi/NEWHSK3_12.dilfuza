@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // --- DATA ---
 const vocabData = [
@@ -28,7 +28,7 @@ const vocabData = [
   { hanzi: '秋天', pinyin: 'qiūtiān', uz: 'Kuz', ru: 'Осень', en: 'Autumn' },
   { hanzi: '叶子', pinyin: 'yèzi', uz: 'Barg', ru: 'Лист', en: 'Leaf' },
   { hanzi: '变成', pinyin: 'biànchéng', uz: '-ga aylanmoq', ru: 'Превращаться', en: 'Become' },
-  { hanzi: '凉快', pinyin: 'liángkuai', uz: 'Salqin', ru: 'Прохладно', en: 'Comfortably cool' },
+  { hanzi: '凉快', pinyin: 'liángkuai', uz: 'Salqin', ru: 'Прохладно', en: 'Comfortably cool' }
 ];
 
 const dialogsData = [
@@ -271,11 +271,15 @@ const RefreshIcon = () => (
 
 // --- HELPER AUDIO FUNCTION ---
 const playAudio = (text) => {
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-CN';
-    utterance.rate = 0.9;
-    window.speechSynthesis.speak(utterance);
+  try {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-CN';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  } catch (error) {
+    console.error("Audio playback failed:", error);
   }
 };
 
@@ -284,10 +288,10 @@ const playAudio = (text) => {
 const TabButton = ({ active, label, onClick }) => (
   <button
     onClick={onClick}
-    className={`px-4 py-3 rounded-xl font-semibold transition-all whitespace-nowrap text-sm sm:text-base ${
+    className={`px-4 py-3 rounded-xl font-semibold transition-all whitespace-nowrap text-sm sm:text-base border border-white/10 ${
       active
         ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 shadow-lg shadow-yellow-500/30'
-        : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-white/10'
+        : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
     }`}
   >
     {label}
@@ -313,13 +317,20 @@ const Flashcards = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto mt-8">
       <div 
-        className="w-full h-80 perspective-1000 cursor-pointer"
+        className="w-full h-80 cursor-pointer"
+        style={{ perspective: '1000px' }}
         onClick={() => setFlipped(!flipped)}
       >
-        <div className={`relative w-full h-full transition-transform duration-500 transform-style-preserve-3d ${flipped ? 'rotate-y-180' : ''}`}>
+        <div 
+          className="relative w-full h-full transition-transform duration-500"
+          style={{ transformStyle: 'preserve-3d', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
+        >
           
           {/* Front */}
-          <div className="absolute w-full h-full backface-hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl">
+          <div 
+            className="absolute w-full h-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl"
+            style={{ backfaceVisibility: 'hidden' }}
+          >
             <h2 className="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500 drop-shadow-sm mb-4">
               {currentWord.hanzi}
             </h2>
@@ -332,9 +343,12 @@ const Flashcards = () => {
           </div>
 
           {/* Back */}
-          <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-slate-800 to-slate-900 border border-yellow-500/30 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl rotate-y-180 text-center">
+          <div 
+            className="absolute w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 border border-yellow-500/30 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl text-center"
+            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          >
             <h3 className="text-4xl font-semibold text-yellow-400 mb-2">{currentWord.pinyin}</h3>
-            <div className="w-16 h-1 bg-white/10 rounded-full my-4"></div>
+            <div className="w-16 h-1 bg-white/10 rounded-full my-4 mx-auto"></div>
             <p className="text-2xl text-white mb-2 font-medium">{currentWord.uz}</p>
             <p className="text-lg text-slate-400 mb-1">{currentWord.ru}</p>
             <p className="text-lg text-slate-500 italic">{currentWord.en}</p>
@@ -371,7 +385,9 @@ const VocabTest = () => {
     const shuffledVocab = [...vocabData].sort(() => 0.5 - Math.random());
     const generated = shuffledVocab.map(word => {
       const options = [word.uz];
-      while(options.length < 4) {
+      let safeCounter = 0;
+      while(options.length < 4 && safeCounter < 50) {
+        safeCounter++;
         const randomWord = vocabData[Math.floor(Math.random() * vocabData.length)].uz;
         if(!options.includes(randomWord)) {
           options.push(randomWord);
@@ -390,11 +406,14 @@ const VocabTest = () => {
   };
 
   const handleAnswer = (opt) => {
-    if (opt === questions[currentQ].ans) {
-      setScore(score + 1);
+    const q = questions[currentQ];
+    if (!q) return;
+
+    if (opt === q.ans) {
+      setScore(s => s + 1);
     }
     if (currentQ + 1 < questions.length) {
-      setCurrentQ(currentQ + 1);
+      setCurrentQ(prev => prev + 1);
     } else {
       setShowResult(true);
     }
@@ -416,6 +435,7 @@ const VocabTest = () => {
   }
 
   const q = questions[currentQ];
+  if (!q) return null;
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
@@ -492,7 +512,6 @@ const Grammar = () => {
         <div key={idx} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-xl">
           <h2 className="text-2xl font-bold text-yellow-400 mb-4">{item.title}</h2>
           
-          {/* Grammar Description in multiple languages */}
           <div className="text-slate-300 mb-6 text-sm border-l-4 border-yellow-500 pl-4 space-y-2">
             <p className="text-white font-medium text-base">🇨🇳 {item.desc.zh}</p>
             <p className="text-emerald-400">🇺🇿 {item.desc.uz}</p>
@@ -500,7 +519,6 @@ const Grammar = () => {
             <p className="text-slate-400 italic">🇬🇧 {item.desc.en}</p>
           </div>
           
-          {/* Grammar Examples */}
           <div className="space-y-4">
             {item.examples.map((ex, exidx) => (
               <div key={exidx} className="bg-slate-900/50 p-5 rounded-2xl flex items-start gap-4 group">
@@ -514,7 +532,6 @@ const Grammar = () => {
                   <p className="text-xl text-white font-medium">{ex.hanzi}</p>
                   <p className="text-yellow-200/70 font-mono my-1 mb-3">{ex.pinyin}</p>
                   
-                  {/* Example translations box */}
                   <div className="space-y-1 text-sm bg-black/20 p-3 rounded-xl border border-white/5">
                     <p className="text-emerald-400 font-medium">🇺🇿 {ex.uz}</p>
                     <p className="text-blue-300">🇷🇺 {ex.ru}</p>
@@ -549,11 +566,14 @@ const GrammarTest = () => {
   };
 
   const handleAnswer = (opt) => {
-    if (opt === questions[currentQ].ans) {
-      setScore(score + 1);
+    const q = questions[currentQ];
+    if (!q) return;
+
+    if (opt === q.ans) {
+      setScore(s => s + 1);
     }
     if (currentQ + 1 < questions.length) {
-      setCurrentQ(currentQ + 1);
+      setCurrentQ(prev => prev + 1);
     } else {
       setShowResult(true);
     }
@@ -575,6 +595,7 @@ const GrammarTest = () => {
   }
 
   const q = questions[currentQ];
+  if (!q) return null;
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
@@ -621,11 +642,14 @@ const FillBlanks = () => {
   };
 
   const handleAnswer = (opt) => {
-    if (opt === questions[currentQ].ans) {
-      setScore(score + 1);
+    const q = questions[currentQ];
+    if (!q) return;
+
+    if (opt === q.ans) {
+      setScore(s => s + 1);
     }
     if (currentQ + 1 < questions.length) {
-      setCurrentQ(currentQ + 1);
+      setCurrentQ(prev => prev + 1);
     } else {
       setShowResult(true);
     }
@@ -647,6 +671,7 @@ const FillBlanks = () => {
   }
 
   const q = questions[currentQ];
+  if (!q) return null;
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
@@ -714,7 +739,8 @@ export default function App() {
         </header>
 
         {/* Navigation Tabs */}
-        <nav className="flex overflow-x-auto pb-4 mb-4 gap-3 snap-x hide-scrollbar scroll-smooth mx-auto max-w-full">
+        {/* Hiding scrollbar using standard Tailwind arbitrary variants instead of injected <style> */}
+        <nav className="flex overflow-x-auto pb-4 mb-4 gap-3 snap-x scroll-smooth mx-auto max-w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {tabs.map((tab) => (
             <div key={tab.id} className="snap-center shrink-0">
               <TabButton
@@ -727,7 +753,7 @@ export default function App() {
         </nav>
 
         {/* Main Content Area */}
-        <main className="flex-grow w-full perspective-1000">
+        <main className="flex-grow w-full">
           {activeTab === 'flashcards' && <Flashcards />}
           {activeTab === 'vocabTest' && <VocabTest />}
           {activeTab === 'dialogues' && <Dialogues />}
@@ -743,16 +769,6 @@ export default function App() {
         </footer>
 
       </div>
-
-      {/* Global Styles */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .perspective-1000 { perspective: 1000px; }
-        .transform-style-preserve-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
     </div>
   );
 }
