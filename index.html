@@ -1,774 +1,665 @@
-import React, { useState, useEffect } from 'react';
-
-// --- DATA ---
-const vocabData = [
-  { hanzi: '街', pinyin: 'jiē', uz: 'Ko\'cha', ru: 'Улица', en: 'Street' },
-  { hanzi: '开花', pinyin: 'kāihuā', uz: 'Gullamoq', ru: 'Цвести', en: 'Bloom' },
-  { hanzi: '公园', pinyin: 'gōngyuán', uz: 'Park', ru: 'Парк', en: 'Park' },
-  { hanzi: '船', pinyin: 'chuán', uz: 'Qayiq', ru: 'Лодка', en: 'Boat' },
-  { hanzi: '工作日', pinyin: 'gōngzuòrì', uz: 'Ish kuni', ru: 'Рабочий день', en: 'Weekday' },
-  { hanzi: '地方', pinyin: 'dìfang', uz: 'Joy', ru: 'Место', en: 'Place' },
-  { hanzi: '刚才', pinyin: 'gāngcái', uz: 'Boya, hozirgina', ru: 'Только что', en: 'A moment ago' },
-  { hanzi: '刮', pinyin: 'guā', uz: 'Esmoq (shamol)', ru: 'Дуть', en: 'Blow' },
-  { hanzi: '风', pinyin: 'fēng', uz: 'Shamol', ru: 'Ветер', en: 'Wind' },
-  { hanzi: '新闻', pinyin: 'xīnwén', uz: 'Yangiliklar', ru: 'Новости', en: 'News' },
-  { hanzi: '伞', pinyin: 'sǎn', uz: 'Soyabon', ru: 'Зонт', en: 'Umbrella' },
-  { hanzi: '借', pinyin: 'jiè', uz: 'Qarzga bermoq/olmoq', ru: 'Одалживать', en: 'Lend, borrow' },
-  { hanzi: '把', pinyin: 'bǎ', uz: 'Dastali narsalar uchun hisob so\'zi', ru: 'Сч. слово', en: 'Measure word' },
-  { hanzi: '雨衣', pinyin: 'yǔyī', uz: 'Yomg\'irpo\'sh', ru: 'Дождевик', en: 'Raincoat' },
-  { hanzi: '变', pinyin: 'biàn', uz: 'O\'zgarmish', ru: 'Меняться', en: 'Change' },
-  { hanzi: '季节', pinyin: 'jìjié', uz: 'Fasl', ru: 'Сезон', en: 'Season' },
-  { hanzi: '变化', pinyin: 'biànhuà', uz: 'O\'zgarish', ru: 'Изменение', en: 'Change, variation' },
-  { hanzi: '冬天', pinyin: 'dōngtiān', uz: 'Qish', ru: 'Зима', en: 'Winter' },
-  { hanzi: '常常', pinyin: 'chángcháng', uz: 'Tez-tez', ru: 'Часто', en: 'Often' },
-  { hanzi: '关注', pinyin: 'guānzhù', uz: 'E\'tibor bermoq', ru: 'Уделять внимание', en: 'Pay close attention' },
-  { hanzi: '四季', pinyin: 'sìjì', uz: 'To\'rt fasl', ru: 'Четыре сезона', en: 'Four seasons' },
-  { hanzi: '春天', pinyin: 'chūntiān', uz: 'Bahor', ru: 'Весна', en: 'Spring' },
-  { hanzi: '夏天', pinyin: 'xiàtiān', uz: 'Yoz', ru: 'Лето', en: 'Summer' },
-  { hanzi: '秋天', pinyin: 'qiūtiān', uz: 'Kuz', ru: 'Осень', en: 'Autumn' },
-  { hanzi: '叶子', pinyin: 'yèzi', uz: 'Barg', ru: 'Лист', en: 'Leaf' },
-  { hanzi: '变成', pinyin: 'biànchéng', uz: '-ga aylanmoq', ru: 'Превращаться', en: 'Become' },
-  { hanzi: '凉快', pinyin: 'liángkuai', uz: 'Salqin', ru: 'Прохладно', en: 'Comfortably cool' }
-];
-
-const dialogsData = [
-  {
-    title: "1-matn / Текст 1 / Text 1",
-    lines: [
-      { speaker: "王一飞", hanzi: "王老师，您看，这条街上的树都开花了。", pinyin: "Wáng lǎoshī, nín kàn, zhè tiáo jiē shang de shù dōu kāihuā le.", uz: "O'qituvchi Vang, qarang, bu ko'chadagi daraxtlarning hammasi gullabdi.", ru: "Учитель Ван, смотрите, деревья на этой улице все зацвели.", en: "Teacher Wang, look, the trees on this street have all bloomed." },
-      { speaker: "白家月", hanzi: "上周我去公园坐船了，公园里的花也开了。天气这么好，下午我也想去公园坐船。", pinyin: "Shàng zhōu wǒ qù gōngyuán zuò chuán le, gōngyuán lǐ de huā yě kāi le. Tiānqì zhème hǎo, xiàwǔ wǒ yě xiǎng qù gōngyuán zuò chuán.", uz: "O'tgan haftada bog'ga borib qayiqqa tushdim, bog'dagi gullar ham ochilibdi. Ob-havo shunchalik yaxshiki, tushdan keyin men ham bog'ga borib qayiqqa tushmoqchiman.", ru: "На прошлой неделе я ходила в парк кататься на лодке, цветы в парке тоже распустились. Погода такая хорошая, днем я тоже хочу пойти в парк покататься на лодке.", en: "Last week I went to the park to take a boat ride, the flowers in the park have also bloomed. The weather is so nice, I also want to go to the park to take a boat ride in the afternoon." },
-      { speaker: "王一飞", hanzi: "去吧！今天是工作日，人应该不多。您有时间吗？我想跟您一起去。", pinyin: "Qù ba! Jīntiān shì gōngzuòrì, rén yīnggāi bù duō. Nín yǒu shíjiān ma? Wǒ xiǎng gēn nín yìqǐ qù.", uz: "Boring! Bugun ish kuni, odam ko'p bo'lmasa kerak. Vaqtingiz bormi? Men siz bilan birga bormoqchiman.", ru: "Идите! Сегодня рабочий день, людей должно быть немного. У вас есть время? Я хочу пойти с вами.", en: "Go! Today is a weekday, there shouldn't be many people. Do you have time? I want to go with you." },
-      { speaker: "白家月", hanzi: "我今天下午有课，不能去太远的地方。", pinyin: "Wǒ jīntiān xiàwǔ yǒu kè, bù néng qù tài yuǎn de dìfang.", uz: "Bugun tushdan keyin darsim bor, uzoqroq joyga bora olmayman.", ru: "У меня сегодня днем уроки, я не могу поехать слишком далеко.", en: "I have classes this afternoon, I can't go too far." },
-      { speaker: "王一飞", hanzi: "那咱们换一天去？", pinyin: "Nà zánmen huàn yì tiān qù?", uz: "Unda boshqa kuni boramizmi?", ru: "Тогда пойдем в другой день?", en: "Then shall we go another day?" },
-      { speaker: "白家月", hanzi: "行。或者明天去，或者后天去，我给你打电话。", pinyin: "Xíng. Huòzhě míngtiān qù, huòzhě hòutiān qù, wǒ gěi nǐ dǎ diànhuà.", uz: "Yaxshi. Yoki ertaga boramiz, yoki indinga, men senga qo'ng'iroq qilaman.", ru: "Хорошо. Либо завтра, либо послезавтра, я тебе позвоню.", en: "Okay. We will go either tomorrow or the day after tomorrow, I will call you." }
-    ]
-  },
-  {
-    title: "2-matn / Текст 2 / Text 2",
-    lines: [
-      { speaker: "白家月", hanzi: "刚才还是大晴天呢，怎么突然就刮起风来了？", pinyin: "Gāngcái hái shì dà qíngtiān ne, zěnme tūrán jiù guā qǐ fēng lái le?", uz: "Hozirgina ochiq kun edi, qanday qilib birdan shamol esib qoldi?", ru: "Только что был ясный день, как вдруг поднялся ветер?", en: "It was a sunny day just a moment ago, how come the wind suddenly blew up?" },
-      { speaker: "王一飞", hanzi: "好像新闻里说今天有雨。", pinyin: "Hǎoxiàng xīnwén lǐ shuō jīntiān yǒu yǔ.", uz: "Yangiliklarda bugun yomg'ir yog'adi deyishgan shekilli.", ru: "Кажется, в новостях говорили, что сегодня будет дождь.", en: "It seems the news said there would be rain today." },
-      { speaker: "白家月", hanzi: "啊？我每天书包里都放着雨伞，就今天没带。", pinyin: "À? Wǒ měitiān shūbāo lǐ dōu fàngzhe yǔsǎn, jiù jīntiān méi dài.", uz: "A? Men har kuni sumkamga soyabon solib yuraman, faqat bugun olmadim.", ru: "А? Я каждый день ношу в рюкзаке зонтик, только сегодня не взяла.", en: "Ah? I keep an umbrella in my backpack every day, only today I didn't bring it." },
-      { speaker: "王一飞", hanzi: "我可以借给你，我车里有一把伞和一件雨衣。", pinyin: "Wǒ kěyǐ jiè gěi nǐ, wǒ chē lǐ yǒu yì bǎ sǎn hé yí jiàn yǔyī.", uz: "Men senga qarzga berib turishim mumkin, mashinamda bitta soyabon va bitta yomg'irpo'sh bor.", ru: "Я могу одолжить тебе, в моей машине есть зонт и дождевик.", en: "I can lend you one, I have an umbrella and a raincoat in my car." },
-      { speaker: "白家月", hanzi: "谢谢，希望下午天气能变好。", pinyin: "Xièxie, xīwàng xiàwǔ tiānqì néng biànhǎo.", uz: "Rahmat, umid qilamanki, tushdan keyin ob-havo yaxshilanadi.", ru: "Спасибо, надеюсь, днем погода улучшится.", en: "Thank you, I hope the weather gets better in the afternoon." },
-      { speaker: "王一飞", hanzi: "这个季节天气变化很快。雨已经下起来了，咱们快点儿走吧。", pinyin: "Zhège jìjié tiānqì biànhuà hěn kuài. Yǔ yǐjīng xià qǐlái le, zánmen kuài diǎnr zǒu ba.", uz: "Bu faslda ob-havo tez o'zgaradi. Yomg'ir yog'ishni boshladi, tezroq ketaylik.", ru: "В это время года погода меняется быстро. Дождь уже начался, давайте пойдем быстрее.", en: "The weather changes very quickly in this season. It has already started to rain, let's walk faster." }
-    ]
-  },
-  {
-    title: "3-matn / Текст 3 / Text 3",
-    lines: [
-      { speaker: "白家月", hanzi: "您来这里已经一年多了，习惯了吧？", pinyin: "Nín lái zhèlǐ yǐjīng yì nián duō le, xíguàn le ba?", uz: "Siz bu yerga kelganingizga bir yildan oshdi, o'rganib qoldingizmi?", ru: "Вы здесь уже больше года, привыкли?", en: "You have been here for over a year, are you used to it?" },
-      { speaker: "王一飞", hanzi: "别的早就习惯了，就是天气我还不太习惯。", pinyin: "Bié de zǎo jiù xíguàn le, jiùshì tiānqì wǒ hái bú tài xíguàn.", uz: "Boshqa narsalarga allaqachon o'rganib qoldim, faqat ob-havoga hali uncha o'rganmadim.", ru: "Ко всему остальному давно привык, только к погоде еще не очень.", en: "I got used to other things long ago, it's just the weather I'm still not quite used to." },
-      { speaker: "白家月", hanzi: "为什么？您不喜欢这里的天气吗？", pinyin: "Wèishénme? Nín bù xǐhuan zhèlǐ de tiānqì ma?", uz: "Nega? Sizga bu yerdagi ob-havo yoqmaydimi?", ru: "Почему? Вам не нравится здешняя погода?", en: "Why? Don't you like the weather here?" },
-      { speaker: "王一飞", hanzi: "我觉得冬天太冷了。", pinyin: "Wǒ juéde dōngtiān tài lěng le.", uz: "Mening fikrimcha, qish juda sovuq.", ru: "Мне кажется, зима слишком холодная.", en: "I think winter is too cold." },
-      { speaker: "白家月", hanzi: "冬天虽然冷，但是下雪的时候特别漂亮。我也喜欢雪。北京常常下雪，但听说今年就下了一次。", pinyin: "Dōngtiān suīrán lěng, dànshì xiàxuě de shíhou tèbié piàoliang. Wǒ yě xǐhuan xuě. Běijīng chángcháng xiàxuě, dàn tīngshuō jīnnián jiù xià le yí cì.", uz: "Qish sovuq bo'lsa ham, qor yog'ganda juda chiroyli bo'ladi. Men ham qorni yaxshi ko'raman. Pekinda tez-tez qor yog'adi, lekin eshitishimcha bu yil atigi bir marta yog'ibdi.", ru: "Хотя зимой холодно, во время снегопада очень красиво. Я тоже люблю снег. В Пекине часто идет снег, но я слышала, что в этом году он шел только один раз.", en: "Although winter is cold, it is especially beautiful when it snows. I also like snow. It often snows in Beijing, but I heard it only snowed once this year." },
-      { speaker: "王一飞", hanzi: "我没关注过北京的天气，但是新闻里说过，今年冬天很多地方雪下得都少了。", pinyin: "Wǒ méi guānzhù guo Běijīng de tiānqì, dànshì xīnwén lǐ shuō guo, jīnnián dōngtiān hěn duō dìfang xuě xià de dōu shǎo le.", uz: "Men Pekin ob-havosiga e'tibor bermagan ekanman, lekin yangiliklarda aytishlaricha, bu yil qishda ko'p joylarda qor kam yog'ibdi.", ru: "Я не обращал внимания на погоду в Пекине, но в новостях говорили, что этой зимой во многих местах снега выпало меньше.", en: "I haven't paid attention to the weather in Beijing, but the news said that it snowed less in many places this winter." }
-    ]
-  },
-  {
-    title: "4-matn / Текст 4 / Text 4",
-    lines: [
-      { speaker: "王一飞", hanzi: "我离开北京到这里工作一年多了。这一年多住下来，我还是更喜欢北京的四季。北京的春天最舒服，天气不冷不热。夏天白天很热，但是晚上比较凉快。秋天树上的叶子都变成了红色、黄色，非常漂亮。冬天不但冷，而且风很大，我最不喜欢冬天。每个人都有自己最喜欢的季节，你最喜欢哪个季节呢？", pinyin: "Wǒ líkāi Běijīng dào zhèlǐ gōngzuò yì nián duō le. Zhè yì nián duō zhù xiàlái, wǒ háishi gèng xǐhuan Běijīng de sìjì. Běijīng de chūntiān zuì shūfu, tiānqì bù lěng bú rè. Xiàtiān báitiān hěn rè, dànshì wǎnshang bǐjiào liángkuai. Qiūtiān shù shang de yèzi dōu biànchéng le hóngsè、huángsè, fēicháng piàoliang. Dōngtiān búdàn lěng, érqiě fēng hěn dà, wǒ zuì bù xǐhuan dōngtiān. Měi gè rén dōu yǒu zìjǐ zuì xǐhuan de jìjié, nǐ zuì xǐhuan nǎge jìjié ne?", uz: "Pekindan ketib, bu yerda ishlayotganimga bir yildan oshdi. Bu yerda bir yildan ko'proq yashab, men baribir Pekinning to'rt faslini ko'proq yoqtiraman. Pekinda bahor eng qulay, ob-havo sovuq ham, issiq ham emas. Yozda kunduzi juda issiq, lekin kechasi ancha salqin. Kuzda daraxtlardagi barglar qizil, sariq rangga kiradi, juda chiroyli. Qish nafaqat sovuq, balki shamol ham kuchli, men qishni umuman yoqtirmayman. Har kimning o'z yoqtirgan fasli bor, sizga qaysi fasl ko'proq yoqadi?", ru: "Прошло больше года с тех пор, как я уехал из Пекина работать сюда. Пожив здесь больше года, я все еще больше люблю четыре сезона Пекина. Весна в Пекине самая комфортная, погода не холодная и не жаркая. Летом днем очень жарко, но ночью довольно прохладно. Осенью листья на деревьях становятся красными и желтыми, это очень красиво. Зима не только холодная, но и очень ветреная, я больше всего не люблю зиму. У каждого есть свой любимый сезон, а какой сезон больше всего нравится вам?", en: "It's been more than a year since I left Beijing to work here. After living here for over a year, I still prefer the four seasons of Beijing. Spring in Beijing is the most comfortable, the weather is neither cold nor hot. Summer days are very hot, but the nights are relatively cool. In autumn, the leaves on the trees turn red and yellow, which is very beautiful. Winter is not only cold, but also very windy, I dislike winter the most. Everyone has their favorite season, which season do you like the most?" }
-    ]
-  }
-];
-
-const grammarData = [
-  {
-    title: "1. 选择复句“或者...或者...” (Yoki...yoki...)",
-    desc: {
-      zh: "选择复句“或者...或者...”表示在两个或多个可能的选项中选择一个。",
-      uz: "Ko'rsatilgan variantlardan birini tanlashni bildiradi.",
-      ru: "Указывает на выбор между двумя или более возможностями.",
-      en: "Indicates a choice between two or more possibilities."
-    },
-    examples: [
-      {
-        hanzi: "或者明天去，或者后天去，我给你打电话。",
-        pinyin: "Huòzhě míngtiān qù, huòzhě hòutiān qù, wǒ gěi nǐ dǎ diànhuà.",
-        uz: "Yoki ertaga boramiz, yoki indinga, men senga qo'ng'iroq qilaman.",
-        ru: "Либо завтра, либо послезавтра, я тебе позвоню.",
-        en: "We will go either tomorrow or the day after tomorrow, I will call you."
-      },
-      {
-        hanzi: "我们或者今天去电影院看电影，或者明天在家看电影。",
-        pinyin: "Wǒmen huòzhě jīntiān qù diànyǐngyuàn kàn diànyǐng, huòzhě míngtiān zài jiā kàn diànyǐng.",
-        uz: "Biz yoki bugun kinoga boramiz, yoki ertaga uyda kino ko'ramiz.",
-        ru: "Мы либо сегодня пойдем в кинотеатр, либо завтра посмотрим фильм дома.",
-        en: "We will either go to the cinema today or watch a movie at home tomorrow."
-      },
-      {
-        hanzi: "晚饭你自己选，或者吃中国菜，或者吃日本菜，或者吃泰国菜。",
-        pinyin: "Wǎnfàn nǐ zìjǐ xuǎn, huòzhě chī Zhōngguó cài, huòzhě chī Rìběn cài, huòzhě chī Tàiguó cài.",
-        uz: "Kechki ovqatni o'zing tanla, yoki xitoy taomini, yoki yapon taomini, yoki tay taomini yeymiz.",
-        ru: "Ужин выбирай сам, либо китайскую еду, либо японскую, либо тайскую.",
-        en: "You choose the dinner yourself, we'll eat either Chinese food, Japanese food, or Thai food."
-      }
-    ]
-  },
-  {
-    title: "2. 趋向补语“起来” (-a boshladi / boshlanishi)",
-    desc: {
-      zh: "趋向补语“起来”用在动词或形容词后，表示动作开始进行或进入一个新的状态。",
-      uz: "Harakatning boshlanishini yoki yangi holatga o'tishni bildiradi.",
-      ru: "Используется после глагола/прилагательного для указания начала действия или перехода в новое состояние.",
-      en: "Used after a verb/adjective to indicate the start of an action or entry into a new state."
-    },
-    examples: [
-      {
-        hanzi: "雨已经下起来了。",
-        pinyin: "Yǔ yǐjīng xià qǐlái le.",
-        uz: "Yomg'ir yog'ishni boshladi.",
-        ru: "Дождь уже начался.",
-        en: "It has already started to rain."
-      },
-      {
-        hanzi: "最近天气热起来了。",
-        pinyin: "Zuìjìn tiānqì rè qǐlái le.",
-        uz: "Yaqinda ob-havo isib ketdi (isishni boshladi).",
-        ru: "В последнее время погода стала жаркой (начала теплеть).",
-        en: "The weather has started to get hot recently."
-      },
-      {
-        hanzi: "怎么突然刮起风来了？",
-        pinyin: "Zěnme tūrán guā qǐ fēng lái le?",
-        uz: "Qanday qilib birdan shamol esib qoldi?",
-        ru: "Как вдруг поднялся ветер?",
-        en: "How come the wind suddenly blew up?"
-      }
-    ]
-  },
-  {
-    title: "3. 范围副词“就” (Faqatgina, atigi)",
-    desc: {
-      zh: "范围副词“就”表示数量少、程度轻、时间短，或表示例外情况。",
-      uz: "Miqdor kamligini, daraja pastligini, qisqa vaqtni yoki istisnoni bildiradi.",
-      ru: "Указывает на небольшое количество, низкую степень, короткую продолжительность или исключение.",
-      en: "Indicates small quantity, low degree, short duration, or an exception."
-    },
-    examples: [
-      {
-        hanzi: "北京常常下雪，但听说今年就下了一次。",
-        pinyin: "Běijīng chángcháng xiàxuě, dàn tīngshuō jīnnián jiù xià le yí cì.",
-        uz: "Pekinda tez-tez qor yog'adi, lekin eshitishimcha bu yil atigi bir marta yog'ibdi.",
-        ru: "В Пекине часто идет снег, но я слышала, что в этом году он шел только один раз.",
-        en: "It often snows in Beijing, but I heard it only snowed once this year."
-      },
-      {
-        hanzi: "他昨天就看了十分钟书。",
-        pinyin: "Tā zuótiān jiù kàn le shí fēnzhōng shū.",
-        uz: "Kecha u atigi o'n daqiqa kitob o'qidi.",
-        ru: "Вчера он читал книгу всего десять минут.",
-        en: "He only read for ten minutes yesterday."
-      },
-      {
-        hanzi: "我每天书包里都放着雨伞，就今天没带。",
-        pinyin: "Wǒ měitiān shūbāo lǐ dōu fàngzhe yǔsǎn, jiù jīntiān méi dài.",
-        uz: "Men har kuni sumkamga soyabon solib yuraman, faqat bugun olmadim.",
-        ru: "Я каждый день ношу в рюкзаке зонтик, только сегодня не взяла.",
-        en: "I keep an umbrella in my backpack every day, only today I didn't bring it."
-      },
-      {
-        hanzi: "你们点的菜都挺好吃的，就我点的这个菜不太好吃。",
-        pinyin: "Nǐmen diǎn de cài dōu tǐng hǎochī de, jiù wǒ diǎn de zhège cài bú tài hǎochī.",
-        uz: "Sizlar buyurtma qilgan ovqatlarning hammasi juda mazali ekan, faqat men buyurtma qilgani uncha mazali emas.",
-        ru: "Все блюда, которые вы заказали, очень вкусные, только то, что заказал я, не очень вкусное.",
-        en: "All the dishes you ordered are quite delicious, only this dish I ordered is not very tasty."
-      }
-    ]
-  },
-  {
-    title: "4. 趋向补语“下来” (Natijaga erishish / Davom etish)",
-    desc: {
-      zh: "趋向补语“下来”用在动词后，表示完成一个费时、费力、需要克服一定困难的动作行为。",
-      uz: "Ko'p vaqt va kuch talab qiladigan harakatning yakunlanishini bildiradi.",
-      ru: "Указывает на завершение действия, требующего значительного времени или усилий.",
-      en: "Indicates the completion of an action requiring considerable time or effort."
-    },
-    examples: [
-      {
-        hanzi: "这一年多住下来，我还是更喜欢北京的四季。",
-        pinyin: "Zhè yì nián duō zhù xiàlái, wǒ háishi gèng xǐhuan Běijīng de sìjì.",
-        uz: "Bu yerda bir yildan ko'proq yashab, men baribir Pekinning to'rt faslini ko'proq yoqtiraman.",
-        ru: "Пожив здесь больше года, я все еще больше люблю четыре сезона Пекина.",
-        en: "After living here for over a year, I still prefer the four seasons of Beijing."
-      },
-      {
-        hanzi: "这半年练下来，他画画的水平提高了不少。",
-        pinyin: "Zhè bàn nián liàn xiàlái, tā huàhuà de shuǐpíng tígāo le bù shǎo.",
-        uz: "Bu yarim yillik mashg'ulotlardan so'ng, uning rasm chizish darajasi ancha yaxshilandi.",
-        ru: "После полугода тренировок его уровень рисования значительно повысился.",
-        en: "After half a year of practice, his drawing level has improved a lot."
-      },
-      {
-        hanzi: "5000米的长跑比赛，没想到我跑下来了。",
-        pinyin: "Wǔ qiān mǐ de chángpǎo bǐsài, méi xiǎngdào wǒ pǎo xiàlái le.",
-        uz: "5000 metrlik masofaga yugurish musobaqasini, o'ylamagandimki, oxirigacha yugura olaman deb.",
-        ru: "Соревнования по бегу на 5000 метров, не ожидал, что смогу добежать до конца.",
-        en: "The 5000-meter long-distance race, I didn't expect I could finish it."
-      }
-    ]
-  }
-];
-
-const grammarTestQuestions = [
-  { q: "老师刚讲完笑话，大家都笑___了。", options: ["起来", "下来", "就", "或者"], ans: "起来" },
-  { q: "天气突然冷___了。", options: ["下来", "起来", "就", "或者"], ans: "起来" },
-  { q: "那么多好吃的，你怎么___吃了一点儿？", options: ["或者", "起来", "下来", "就"], ans: "就" },
-  { q: "这个任务很难，但他终于坚持___了。", options: ["下来", "就", "起来", "或者"], ans: "下来" },
-  { q: "我们___坐地铁去，___打车去。", options: ["就...就", "或者...或者", "起...来", "下...来"], ans: "或者...或者" },
-  { q: "他跑了五公里，终于跑___了。", options: ["起来", "或者", "下来", "就"], ans: "下来" },
-  { q: "刚才还是晴天，现在怎么下___雨了？", options: ["或者", "下来", "起来", "就"], ans: "起来" },
-  { q: "大家都来了，___他没来。", options: ["下来", "起来", "或者", "就"], ans: "就" },
-  { q: "周末我___在家看书，___去跟朋友踢球。", options: ["就...就", "或者...或者", "下...来", "起...来"], ans: "或者...或者" },
-  { q: "音乐响___了，大家开始跳舞。", options: ["下来", "或者", "就", "起来"], ans: "起来" },
-  { q: "这本书很厚，但我用了一个月终于读___了。", options: ["下来", "起来", "就", "或者"], ans: "下来" },
-  { q: "班里的同学都考得很好，___我不及格。", options: ["或者", "就", "起来", "下来"], ans: "就" },
-  { q: "孩子开心地唱起歌___。", options: ["下", "就", "来", "或者"], ans: "来" },
-  { q: "这么大的工程，他一个人做___了。", options: ["或者", "就", "起来", "下来"], ans: "下来" },
-  { q: "晚饭你选，___吃中国菜，___吃日本菜。", options: ["或者...或者", "就...就", "起...来", "下...来"], ans: "或者...或者" }
-];
-
-const fillBlanksQuestions = [
-  { q: "这条___上的树很多。", options: ["街", "船", "伞", "风"], ans: "街" },
-  { q: "春天到了，所有的花都___了。", options: ["关注", "开花", "变", "借"], ans: "开花" },
-  { q: "孩子们喜欢在___里玩。", options: ["新闻", "季节", "公园", "工作日"], ans: "公园" },
-  { q: "我们去湖上坐___吧。", options: ["船", "伞", "街", "风"], ans: "船" },
-  { q: "今天是___，大家都去上班了。", options: ["季节", "地方", "新闻", "工作日"], ans: "工作日" },
-  { q: "你最喜欢去什么___旅游？", options: ["地方", "公园", "街", "季节"], ans: "地方" },
-  { q: "___还是大晴天，现在下雨了。", options: ["刚才", "常常", "关注", "变成"], ans: "刚才" },
-  { q: "外面___风了，有点冷。", options: ["借", "刮", "变", "把"], ans: "刮" },
-  { q: "今天的___很大，你听见声音了吗？", options: ["雨衣", "叶子", "风", "伞"], ans: "风" },
-  { q: "你看今天的___了吗？有什么大事？", options: ["四季", "季节", "新闻", "地方"], ans: "新闻" },
-  { q: "下雨了，出门别忘了带___。", options: ["伞", "船", "风", "叶子"], ans: "伞" },
-  { q: "我可以向你___一支笔吗？", options: ["刮", "借", "变", "关注"], ans: "借" },
-  { q: "房间里有一___红色的椅子。", options: ["把", "借", "变", "刮"], ans: "把" },
-  { q: "外面下雨了，你穿上___再出去。", options: ["叶子", "伞", "风", "雨衣"], ans: "雨衣" },
-  { q: "天气___冷了，多穿衣服。", options: ["刮", "变", "关注", "借"], ans: "变" },
-  { q: "一年有四个___。", options: ["新闻", "地方", "季节", "公园"], ans: "季节" },
-  { q: "这里的___很大，我快认不出来了。", options: ["变化", "刚才", "夏天", "四季"], ans: "变化" },
-  { q: "北京的___很冷，经常下雪。", options: ["春天", "夏天", "秋天", "冬天"], ans: "冬天" },
-  { q: "他___去图书馆看书。", options: ["刚才", "变化", "常常", "关注"], ans: "常常" },
-  { q: "请多___明天的天气预报。", options: ["借", "关注", "刮", "变"], ans: "关注" },
-  { q: "我最喜欢___，因为花都开了。", options: ["春天", "夏天", "冬天", "秋天"], ans: "春天" },
-  { q: "___太热了，去游泳吧。", options: ["冬天", "秋天", "春天", "夏天"], ans: "夏天" },
-  { q: "___的时候，树叶黄了。", options: ["春天", "秋天", "冬天", "夏天"], ans: "秋天" },
-  { q: "树上的___都落了。", options: ["伞", "风", "叶子", "雨衣"], ans: "叶子" },
-  { q: "雨后的空气非常___。", options: ["开花", "凉快", "常常", "关注"], ans: "凉快" },
-];
-
-// --- ICONS ---
-const VolumeIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 10V14H9L14 19V5L9 10H5z" />
-  </svg>
-);
-const RefreshIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
-
-// --- HELPER AUDIO FUNCTION ---
-const playAudio = (text) => {
-  try {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'zh-CN';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
-  } catch (error) {
-    console.error("Audio playback failed:", error);
-  }
-};
-
-// --- COMPONENTS ---
-
-const TabButton = ({ active, label, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-3 rounded-xl font-semibold transition-all whitespace-nowrap text-sm sm:text-base border border-white/10 ${
-      active
-        ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 shadow-lg shadow-yellow-500/30'
-        : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
-    }`}
-  >
-    {label}
-  </button>
-);
-
-const Flashcards = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-
-  const nextCard = () => {
-    setFlipped(false);
-    setCurrentIndex((prev) => (prev + 1) % vocabData.length);
-  };
-
-  const prevCard = () => {
-    setFlipped(false);
-    setCurrentIndex((prev) => (prev - 1 + vocabData.length) % vocabData.length);
-  };
-
-  const currentWord = vocabData[currentIndex];
-
-  return (
-    <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto mt-8">
-      <div 
-        className="w-full h-80 cursor-pointer"
-        style={{ perspective: '1000px' }}
-        onClick={() => setFlipped(!flipped)}
-      >
-        <div 
-          className="relative w-full h-full transition-transform duration-500"
-          style={{ transformStyle: 'preserve-3d', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
-        >
-          
-          {/* Front */}
-          <div 
-            className="absolute w-full h-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl"
-            style={{ backfaceVisibility: 'hidden' }}
-          >
-            <h2 className="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500 drop-shadow-sm mb-4">
-              {currentWord.hanzi}
-            </h2>
-            <button 
-              onClick={(e) => { e.stopPropagation(); playAudio(currentWord.hanzi); }}
-              className="mt-4 p-4 rounded-full bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 transition-colors"
-            >
-              <VolumeIcon />
-            </button>
-          </div>
-
-          {/* Back */}
-          <div 
-            className="absolute w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 border border-yellow-500/30 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl text-center"
-            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-          >
-            <h3 className="text-4xl font-semibold text-yellow-400 mb-2">{currentWord.pinyin}</h3>
-            <div className="w-16 h-1 bg-white/10 rounded-full my-4 mx-auto"></div>
-            <p className="text-2xl text-white mb-2 font-medium">{currentWord.uz}</p>
-            <p className="text-lg text-slate-400 mb-1">{currentWord.ru}</p>
-            <p className="text-lg text-slate-500 italic">{currentWord.en}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center w-full mt-8 px-4">
-        <button onClick={prevCard} className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium backdrop-blur-md transition-all">
-          ← Oldingi
-        </button>
-        <span className="text-slate-400 font-medium">
-          {currentIndex + 1} / {vocabData.length}
-        </span>
-        <button onClick={nextCard} className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium backdrop-blur-md transition-all">
-          Keyingisi →
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const VocabTest = () => {
-  const [questions, setQuestions] = useState([]);
-  const [currentQ, setCurrentQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-
-  useEffect(() => {
-    generateTest();
-  }, []);
-
-  const generateTest = () => {
-    const shuffledVocab = [...vocabData].sort(() => 0.5 - Math.random());
-    const generated = shuffledVocab.map(word => {
-      const options = [word.uz];
-      let safeCounter = 0;
-      while(options.length < 4 && safeCounter < 50) {
-        safeCounter++;
-        const randomWord = vocabData[Math.floor(Math.random() * vocabData.length)].uz;
-        if(!options.includes(randomWord)) {
-          options.push(randomWord);
-        }
-      }
-      return {
-        q: word.hanzi,
-        ans: word.uz,
-        options: options.sort(() => 0.5 - Math.random())
-      };
-    });
-    setQuestions(generated);
-    setCurrentQ(0);
-    setScore(0);
-    setShowResult(false);
-  };
-
-  const handleAnswer = (opt) => {
-    const q = questions[currentQ];
-    if (!q) return;
-
-    if (opt === q.ans) {
-      setScore(s => s + 1);
-    }
-    if (currentQ + 1 < questions.length) {
-      setCurrentQ(prev => prev + 1);
-    } else {
-      setShowResult(true);
-    }
-  };
-
-  if (questions.length === 0) return null;
-
-  if (showResult) {
-    return (
-      <div className="text-center p-12 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl max-w-xl mx-auto mt-12">
-        <h2 className="text-4xl font-bold text-white mb-4">Natija!</h2>
-        <p className="text-2xl text-yellow-400 mb-8">{score} / {questions.length} to'g'ri javob</p>
-        <button onClick={generateTest} className="flex items-center justify-center mx-auto space-x-2 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-full font-bold transition-all shadow-lg shadow-yellow-500/20">
-          <RefreshIcon />
-          <span>Qayta urinish</span>
-        </button>
-      </div>
-    );
-  }
-
-  const q = questions[currentQ];
-  if (!q) return null;
-
-  return (
-    <div className="max-w-2xl mx-auto mt-8">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
-        <div className="flex justify-between items-center mb-8">
-          <span className="text-yellow-500 font-bold tracking-wider">Savol {currentQ + 1} / {questions.length}</span>
-          <span className="text-slate-400 text-sm">Lug'at Testi</span>
-        </div>
-        <div className="text-center mb-10">
-          <h2 className="text-7xl font-bold text-white mb-4 drop-shadow-md">{q.q}</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {q.options.map((opt, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleAnswer(opt)}
-              className="p-5 rounded-2xl bg-slate-800/50 hover:bg-yellow-500/20 border border-white/5 hover:border-yellow-500/50 text-white font-medium transition-all text-left"
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Dialogues = () => {
-  return (
-    <div className="max-w-4xl mx-auto mt-8 space-y-12">
-      {dialogsData.map((dialog, idx) => (
-        <div key={idx} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-6 border-b border-white/10 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-yellow-400">{dialog.title}</h2>
-          </div>
-          <div className="p-6 space-y-6">
-            {dialog.lines.map((line, lidx) => (
-              <div key={lidx} className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors group">
-                <div className="sm:w-1/4">
-                  <span className="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 font-semibold rounded-lg text-sm border border-yellow-500/30">
-                    {line.speaker}
-                  </span>
-                </div>
-                <div className="sm:w-3/4">
-                  <p className="text-2xl text-white font-medium mb-1 flex items-center gap-3">
-                    {line.hanzi}
-                    <button 
-                      onClick={() => playAudio(line.hanzi)}
-                      className="p-2 rounded-full bg-white/10 text-slate-300 hover:text-yellow-400 hover:bg-white/20 transition-all opacity-100 sm:opacity-0 group-hover:opacity-100"
-                    >
-                      <VolumeIcon />
-                    </button>
-                  </p>
-                  <p className="text-yellow-200/80 mb-3 text-lg font-mono">{line.pinyin}</p>
-                  <div className="space-y-1 text-sm">
-                    <p className="text-emerald-400 font-medium">🇺🇿 {line.uz}</p>
-                    <p className="text-blue-300">🇷🇺 {line.ru}</p>
-                    <p className="text-slate-400 italic">🇬🇧 {line.en}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const Grammar = () => {
-  return (
-    <div className="max-w-4xl mx-auto mt-8 space-y-8">
-      {grammarData.map((item, idx) => (
-        <div key={idx} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-xl">
-          <h2 className="text-2xl font-bold text-yellow-400 mb-4">{item.title}</h2>
-          
-          <div className="text-slate-300 mb-6 text-sm border-l-4 border-yellow-500 pl-4 space-y-2">
-            <p className="text-white font-medium text-base">🇨🇳 {item.desc.zh}</p>
-            <p className="text-emerald-400">🇺🇿 {item.desc.uz}</p>
-            <p className="text-blue-300">🇷🇺 {item.desc.ru}</p>
-            <p className="text-slate-400 italic">🇬🇧 {item.desc.en}</p>
-          </div>
-          
-          <div className="space-y-4">
-            {item.examples.map((ex, exidx) => (
-              <div key={exidx} className="bg-slate-900/50 p-5 rounded-2xl flex items-start gap-4 group">
-                <button 
-                  onClick={() => playAudio(ex.hanzi)}
-                  className="mt-1 p-2 flex-shrink-0 rounded-full bg-white/5 text-slate-400 hover:text-yellow-400 hover:bg-white/10 transition-colors"
-                >
-                  <VolumeIcon />
-                </button>
-                <div className="w-full">
-                  <p className="text-xl text-white font-medium">{ex.hanzi}</p>
-                  <p className="text-yellow-200/70 font-mono my-1 mb-3">{ex.pinyin}</p>
-                  
-                  <div className="space-y-1 text-sm bg-black/20 p-3 rounded-xl border border-white/5">
-                    <p className="text-emerald-400 font-medium">🇺🇿 {ex.uz}</p>
-                    <p className="text-blue-300">🇷🇺 {ex.ru}</p>
-                    <p className="text-slate-400 italic">🇬🇧 {ex.en}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const GrammarTest = () => {
-  const [currentQ, setCurrentQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [questions, setQuestions] = useState([]);
-
-  useEffect(() => {
-    generateTest();
-  }, []);
-
-  const generateTest = () => {
-    const shuffled = [...grammarTestQuestions].sort(() => 0.5 - Math.random());
-    setQuestions(shuffled);
-    setCurrentQ(0);
-    setScore(0);
-    setShowResult(false);
-  };
-
-  const handleAnswer = (opt) => {
-    const q = questions[currentQ];
-    if (!q) return;
-
-    if (opt === q.ans) {
-      setScore(s => s + 1);
-    }
-    if (currentQ + 1 < questions.length) {
-      setCurrentQ(prev => prev + 1);
-    } else {
-      setShowResult(true);
-    }
-  };
-
-  if (questions.length === 0) return null;
-
-  if (showResult) {
-    return (
-      <div className="text-center p-12 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl max-w-xl mx-auto mt-12">
-        <h2 className="text-4xl font-bold text-white mb-4">Natija!</h2>
-        <p className="text-2xl text-yellow-400 mb-8">{score} / {questions.length} to'g'ri javob</p>
-        <button onClick={generateTest} className="flex items-center justify-center mx-auto space-x-2 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-full font-bold transition-all shadow-lg shadow-yellow-500/20">
-          <RefreshIcon />
-          <span>Qayta urinish</span>
-        </button>
-      </div>
-    );
-  }
-
-  const q = questions[currentQ];
-  if (!q) return null;
-
-  return (
-    <div className="max-w-2xl mx-auto mt-8">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
-        <div className="flex justify-between items-center mb-8">
-          <span className="text-yellow-500 font-bold tracking-wider">Savol {currentQ + 1} / {questions.length}</span>
-          <span className="text-slate-400 text-sm">Grammatika Testi</span>
-        </div>
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-medium text-white mb-4 leading-relaxed">{q.q}</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {q.options.map((opt, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleAnswer(opt)}
-              className="p-5 rounded-2xl bg-slate-800/50 hover:bg-yellow-500/20 border border-white/5 hover:border-yellow-500/50 text-white font-medium text-xl transition-all"
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const FillBlanks = () => {
-  const [currentQ, setCurrentQ] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [questions, setQuestions] = useState([]);
-
-  useEffect(() => {
-    generateTest();
-  }, []);
-
-  const generateTest = () => {
-    const shuffled = [...fillBlanksQuestions].sort(() => 0.5 - Math.random());
-    setQuestions(shuffled);
-    setCurrentQ(0);
-    setScore(0);
-    setShowResult(false);
-  };
-
-  const handleAnswer = (opt) => {
-    const q = questions[currentQ];
-    if (!q) return;
-
-    if (opt === q.ans) {
-      setScore(s => s + 1);
-    }
-    if (currentQ + 1 < questions.length) {
-      setCurrentQ(prev => prev + 1);
-    } else {
-      setShowResult(true);
-    }
-  };
-
-  if (questions.length === 0) return null;
-
-  if (showResult) {
-    return (
-      <div className="text-center p-12 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl max-w-xl mx-auto mt-12">
-        <h2 className="text-4xl font-bold text-white mb-4">Natija!</h2>
-        <p className="text-2xl text-yellow-400 mb-8">{score} / {questions.length} to'g'ri javob</p>
-        <button onClick={generateTest} className="flex items-center justify-center mx-auto space-x-2 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-full font-bold transition-all shadow-lg shadow-yellow-500/20">
-          <RefreshIcon />
-          <span>Qayta urinish</span>
-        </button>
-      </div>
-    );
-  }
-
-  const q = questions[currentQ];
-  if (!q) return null;
-
-  return (
-    <div className="max-w-2xl mx-auto mt-8">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
-        <div className="flex justify-between items-center mb-8">
-          <span className="text-yellow-500 font-bold tracking-wider">Savol {currentQ + 1} / {questions.length}</span>
-          <span className="text-slate-400 text-sm">So'zlarni to'ldirish</span>
-        </div>
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-medium text-white mb-4 leading-relaxed">{q.q.split('___').map((part, i, arr) => (
-            <React.Fragment key={i}>
-              {part}
-              {i < arr.length - 1 && <span className="inline-block w-16 border-b-2 border-yellow-500 mx-2 mb-1"></span>}
-            </React.Fragment>
-          ))}</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {q.options.map((opt, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleAnswer(opt)}
-              className="p-5 rounded-2xl bg-slate-800/50 hover:bg-emerald-500/20 border border-white/5 hover:border-emerald-500/50 text-white font-medium text-xl transition-all"
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-// --- MAIN APP ---
-export default function App() {
-  const [activeTab, setActiveTab] = useState('flashcards');
-
-  const tabs = [
-    { id: 'flashcards', label: 'Fleshkarta' },
-    { id: 'vocabTest', label: "Lug'at testi" },
-    { id: 'dialogues', label: 'Muloqot' },
-    { id: 'grammar', label: 'Grammatika' },
-    { id: 'grammarTest', label: 'Grammatika testi' },
-    { id: 'fillBlanks', label: "So'zlarni to'ldirish" }
-  ];
-
-  return (
-    <div className="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-yellow-500/30 overflow-x-hidden relative">
-      {/* Background Orbs */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-yellow-600/10 blur-[150px]"></div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col min-h-screen">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12-dars: 这个季节天气变化很快</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 3D 翻转与滚动条隐藏自定义样式 */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
         
-        {/* Header */}
-        <header className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 drop-shadow-sm mb-3">
-            12-dars: 这个季节天气变化很快
-          </h1>
-          <p className="text-lg md:text-xl text-emerald-400/90 font-medium tracking-wide">
-            Dilfuza Kāng lǎo shī bilan xitoy tilini o'rganmiz
-          </p>
+        /* 隐藏不同浏览器的滚动条 */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 标签页基础过渡 */
+        .tab-btn { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="min-h-screen bg-[#0a0f1c] text-slate-200 font-sans selection:bg-yellow-500/30 overflow-x-hidden relative">
+
+    <!-- 背景光效 -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-yellow-600/10 blur-[150px]"></div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col min-h-screen">
+        
+        <!-- 页眉 -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 drop-shadow-sm mb-3">
+                12-dars: 这个季节天气变化很快
+            </h1>
+            <p class="text-lg md:text-xl text-emerald-400/90 font-medium tracking-wide">
+                Dilfuza Kāng lǎo shī bilan xitoy tilini o'rganmiz
+            </p>
         </header>
 
-        {/* Navigation Tabs */}
-        {/* Hiding scrollbar using standard Tailwind arbitrary variants instead of injected <style> */}
-        <nav className="flex overflow-x-auto pb-4 mb-4 gap-3 snap-x scroll-smooth mx-auto max-w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {tabs.map((tab) => (
-            <div key={tab.id} className="snap-center shrink-0">
-              <TabButton
-                active={activeTab === tab.id}
-                label={tab.label}
-                onClick={() => setActiveTab(tab.id)}
-              />
-            </div>
-          ))}
+        <!-- 导航标签页 -->
+        <nav id="tabs-container" class="flex overflow-x-auto pb-4 mb-4 gap-3 snap-x hide-scrollbar scroll-smooth mx-auto max-w-full">
+            <!-- 标签页将由 JS 动态生成 -->
         </nav>
 
-        {/* Main Content Area */}
-        <main className="flex-grow w-full">
-          {activeTab === 'flashcards' && <Flashcards />}
-          {activeTab === 'vocabTest' && <VocabTest />}
-          {activeTab === 'dialogues' && <Dialogues />}
-          {activeTab === 'grammar' && <Grammar />}
-          {activeTab === 'grammarTest' && <GrammarTest />}
-          {activeTab === 'fillBlanks' && <FillBlanks />}
+        <!-- 主要内容区 -->
+        <main class="flex-grow w-full perspective-1000">
+            <div id="sec-flashcards" class="section hidden"></div>
+            <div id="sec-vocabTest" class="section hidden"></div>
+            <div id="sec-dialogues" class="section hidden"></div>
+            <div id="sec-grammar" class="section hidden"></div>
+            <div id="sec-grammarTest" class="section hidden"></div>
+            <div id="sec-fillBlanks" class="section hidden"></div>
         </main>
 
-        {/* Footer */}
-        <footer className="mt-16 text-center py-6 border-t border-white/5">
-          <p className="text-slate-500 font-medium">HSK 3 NEW3.0 - Lesson 12</p>
-          <p className="text-slate-600 text-sm mt-1">© 2026 Dilfuza Kāng lǎo shī (telegram@diffila)</p>
+        <!-- 页脚 -->
+        <footer class="mt-16 text-center py-6 border-t border-white/5">
+            <p class="text-slate-500 font-medium">HSK 3 NEW3.0 - Lesson 12</p>
+            <p class="text-slate-600 text-sm mt-1">© 2026 Dilfuza Kāng lǎo shī (telegram@diffila)</p>
         </footer>
 
-      </div>
     </div>
-  );
-}
+
+    <!-- 应用程序逻辑 -->
+    <script>
+        // --- 数据区 (DATA) ---
+        const vocabData = [
+            { hanzi: '街', pinyin: 'jiē', uz: 'Ko\'cha', ru: 'Улица', en: 'Street' },
+            { hanzi: '开花', pinyin: 'kāihuā', uz: 'Gullamoq', ru: 'Цвести', en: 'Bloom' },
+            { hanzi: '公园', pinyin: 'gōngyuán', uz: 'Park', ru: 'Парк', en: 'Park' },
+            { hanzi: '船', pinyin: 'chuán', uz: 'Qayiq', ru: 'Лодка', en: 'Boat' },
+            { hanzi: '工作日', pinyin: 'gōngzuòrì', uz: 'Ish kuni', ru: 'Рабочий день', en: 'Weekday' },
+            { hanzi: '地方', pinyin: 'dìfang', uz: 'Joy', ru: 'Место', en: 'Place' },
+            { hanzi: '刚才', pinyin: 'gāngcái', uz: 'Boya, hozirgina', ru: 'Только что', en: 'A moment ago' },
+            { hanzi: '刮', pinyin: 'guā', uz: 'Esmoq (shamol)', ru: 'Дуть', en: 'Blow' },
+            { hanzi: '风', pinyin: 'fēng', uz: 'Shamol', ru: 'Ветер', en: 'Wind' },
+            { hanzi: '新闻', pinyin: 'xīnwén', uz: 'Yangiliklar', ru: 'Новости', en: 'News' },
+            { hanzi: '伞', pinyin: 'sǎn', uz: 'Soyabon', ru: 'Зонт', en: 'Umbrella' },
+            { hanzi: '借', pinyin: 'jiè', uz: 'Qarzga bermoq/olmoq', ru: 'Одалживать', en: 'Lend, borrow' },
+            { hanzi: '把', pinyin: 'bǎ', uz: 'Dastali narsalar uchun hisob so\'zi', ru: 'Сч. слово', en: 'Measure word' },
+            { hanzi: '雨衣', pinyin: 'yǔyī', uz: 'Yomg\'irpo\'sh', ru: 'Дождевик', en: 'Raincoat' },
+            { hanzi: '变', pinyin: 'biàn', uz: 'O\'zgarmish', ru: 'Меняться', en: 'Change' },
+            { hanzi: '季节', pinyin: 'jìjié', uz: 'Fasl', ru: 'Сезон', en: 'Season' },
+            { hanzi: '变化', pinyin: 'biànhuà', uz: 'O\'zgarish', ru: 'Изменение', en: 'Change, variation' },
+            { hanzi: '冬天', pinyin: 'dōngtiān', uz: 'Qish', ru: 'Зима', en: 'Winter' },
+            { hanzi: '常常', pinyin: 'chángcháng', uz: 'Tez-tez', ru: 'Часто', en: 'Often' },
+            { hanzi: '关注', pinyin: 'guānzhù', uz: 'E\'tibor bermoq', ru: 'Уделять внимание', en: 'Pay close attention' },
+            { hanzi: '四季', pinyin: 'sìjì', uz: 'To\'rt fasl', ru: 'Четыре сезона', en: 'Four seasons' },
+            { hanzi: '春天', pinyin: 'chūntiān', uz: 'Bahor', ru: 'Весна', en: 'Spring' },
+            { hanzi: '夏天', pinyin: 'xiàtiān', uz: 'Yoz', ru: 'Лето', en: 'Summer' },
+            { hanzi: '秋天', pinyin: 'qiūtiān', uz: 'Kuz', ru: 'Осень', en: 'Autumn' },
+            { hanzi: '叶子', pinyin: 'yèzi', uz: 'Barg', ru: 'Лист', en: 'Leaf' },
+            { hanzi: '变成', pinyin: 'biànchéng', uz: '-ga aylanmoq', ru: 'Превращаться', en: 'Become' },
+            { hanzi: '凉快', pinyin: 'liángkuai', uz: 'Salqin', ru: 'Прохладно', en: 'Comfortably cool' }
+        ];
+
+        const dialogsData = [
+            {
+                title: "1-matn / Текст 1 / Text 1",
+                lines: [
+                    { speaker: "王一飞", hanzi: "王老师，您看，这条街上的树都开花了。", pinyin: "Wáng lǎoshī, nín kàn, zhè tiáo jiē shang de shù dōu kāihuā le.", uz: "O'qituvchi Vang, qarang, bu ko'chadagi daraxtlarning hammasi gullabdi.", ru: "Учитель Ван, смотрите, деревья на этой улице все зацвели.", en: "Teacher Wang, look, the trees on this street have all bloomed." },
+                    { speaker: "白家月", hanzi: "上周我去公园坐船了，公园里的花也开了。天气这么好，下午我也想去公园坐船。", pinyin: "Shàng zhōu wǒ qù gōngyuán zuò chuán le, gōngyuán lǐ de huā yě kāi le. Tiānqì zhème hǎo, xiàwǔ wǒ yě xiǎng qù gōngyuán zuò chuán.", uz: "O'tgan haftada bog'ga borib qayiqqa tushdim, bog'dagi gullar ham ochilibdi. Ob-havo shunchalik yaxshiki, tushdan keyin men ham bog'ga borib qayiqqa tushmoqchiman.", ru: "На прошлой неделе я ходила в парк кататься на лодке, цветы в парке тоже распустились. Погода такая хорошая, днем я тоже хочу пойти в парк покататься на лодке.", en: "Last week I went to the park to take a boat ride, the flowers in the park have also bloomed. The weather is so nice, I also want to go to the park to take a boat ride in the afternoon." },
+                    { speaker: "王一飞", hanzi: "去吧！今天是工作日，人应该不多。您有时间吗？我想跟您一起去。", pinyin: "Qù ba! Jīntiān shì gōngzuòrì, rén yīnggāi bù duō. Nín yǒu shíjiān ma? Wǒ xiǎng gēn nín yìqǐ qù.", uz: "Boring! Bugun ish kuni, odam ko'p bo'lmasa kerak. Vaqtingiz bormi? Men siz bilan birga bormoqchiman.", ru: "Идите! Сегодня рабочий день, людей должно быть немного. У вас есть время? Я хочу пойти с вами.", en: "Go! Today is a weekday, there shouldn't be many people. Do you have time? I want to go with you." },
+                    { speaker: "白家月", hanzi: "我今天下午有课，不能去太远的地方。", pinyin: "Wǒ jīntiān xiàwǔ yǒu kè, bù néng qù tài yuǎn de dìfang.", uz: "Bugun tushdan keyin darsim bor, uzoqroq joyga bora olmayman.", ru: "У меня сегодня днем уроки, я не могу поехать слишком далеко.", en: "I have classes this afternoon, I can't go too far." },
+                    { speaker: "王一飞", hanzi: "那咱们换一天去？", pinyin: "Nà zánmen huàn yì tiān qù?", uz: "Unda boshqa kuni boramizmi?", ru: "Тогда пойдем в другой день?", en: "Then shall we go another day?" },
+                    { speaker: "白家月", hanzi: "行。或者明天去，或者后天去，我给你打电话。", pinyin: "Xíng. Huòzhě míngtiān qù, huòzhě hòutiān qù, wǒ gěi nǐ dǎ diànhuà.", uz: "Yaxshi. Yoki ertaga boramiz, yoki indinga, men senga qo'ng'iroq qilaman.", ru: "Хорошо. Либо завтра, либо послезавтра, я тебе позвоню.", en: "Okay. We will go either tomorrow or the day after tomorrow, I will call you." }
+                ]
+            },
+            {
+                title: "2-matn / Текст 2 / Text 2",
+                lines: [
+                    { speaker: "白家月", hanzi: "刚才还是大晴天呢，怎么突然就刮起风来了？", pinyin: "Gāngcái hái shì dà qíngtiān ne, zěnme tūrán jiù guā qǐ fēng lái le?", uz: "Hozirgina ochiq kun edi, qanday qilib birdan shamol esib qoldi?", ru: "Только что был ясный день, как вдруг поднялся ветер?", en: "It was a sunny day just a moment ago, how come the wind suddenly blew up?" },
+                    { speaker: "王一飞", hanzi: "好像新闻里说今天有雨。", pinyin: "Hǎoxiàng xīnwén lǐ shuō jīntiān yǒu yǔ.", uz: "Yangiliklarda bugun yomg'ir yog'adi deyishgan shekilli.", ru: "Кажется, в новостях говорили, что сегодня будет дождь.", en: "It seems the news said there would be rain today." },
+                    { speaker: "白家月", hanzi: "啊？我每天书包里都放着雨伞，就今天没带。", pinyin: "À? Wǒ měitiān shūbāo lǐ dōu fàngzhe yǔsǎn, jiù jīntiān méi dài.", uz: "A? Men har kuni sumkamga soyabon solib yuraman, faqat bugun olmadim.", ru: "А? Я каждый день ношу в рюкзаке зонтик, только сегодня не взяла.", en: "Ah? I keep an umbrella in my backpack every day, only today I didn't bring it." },
+                    { speaker: "王一飞", hanzi: "我可以借给你，我车里有一把伞和一件雨衣。", pinyin: "Wǒ kěyǐ jiè gěi nǐ, wǒ chē lǐ yǒu yì bǎ sǎn hé yí jiàn yǔyī.", uz: "Men senga qarzga berib turishim mumkin, mashinamda bitta soyabon va bitta yomg'irpo'sh bor.", ru: "Я могу одолжить тебе, в моей машине есть зонт и дождевик.", en: "I can lend you one, I have an umbrella and a raincoat in my car." },
+                    { speaker: "白家月", hanzi: "谢谢，希望下午天气能变好。", pinyin: "Xièxie, xīwàng xiàwǔ tiānqì néng biànhǎo.", uz: "Rahmat, umid qilamanki, tushdan keyin ob-havo yaxshilanadi.", ru: "Спасибо, надеюсь, днем погода улучшится.", en: "Thank you, I hope the weather gets better in the afternoon." },
+                    { speaker: "王一飞", hanzi: "这个季节天气变化很快。雨已经下起来了，咱们快点儿走吧。", pinyin: "Zhège jìjié tiānqì biànhuà hěn kuài. Yǔ yǐjīng xià qǐlái le, zánmen kuài diǎnr zǒu ba.", uz: "Bu faslda ob-havo tez o'zgaradi. Yomg'ir yog'ishni boshladi, tezroq ketaylik.", ru: "В это время года погода меняется быстро. Дождь уже начался, давайте пойдем быстрее.", en: "The weather changes very quickly in this season. It has already started to rain, let's walk faster." }
+                ]
+            },
+            {
+                title: "3-matn / Текст 3 / Text 3",
+                lines: [
+                    { speaker: "白家月", hanzi: "您来这里已经一年多了，习惯了吧？", pinyin: "Nín lái zhèlǐ yǐjīng yì nián duō le, xíguàn le ba?", uz: "Siz bu yerga kelganingizga bir yildan oshdi, o'rganib qoldingizmi?", ru: "Вы здесь уже больше года, привыкли?", en: "You have been here for over a year, are you used to it?" },
+                    { speaker: "王一飞", hanzi: "别的早就习惯了，就是天气我还不太习惯。", pinyin: "Bié de zǎo jiù xíguàn le, jiùshì tiānqì wǒ hái bú tài xíguàn.", uz: "Boshqa narsalarga allaqachon o'rganib qoldim, faqat ob-havoga hali uncha o'rganmadim.", ru: "Ко всему остальному давно привык, только к погоде еще не очень.", en: "I got used to other things long ago, it's just the weather I'm still not quite used to." },
+                    { speaker: "白家月", hanzi: "为什么？您不喜欢这里的天气吗？", pinyin: "Wèishénme? Nín bù xǐhuan zhèlǐ de tiānqì ma?", uz: "Nega? Sizga bu yerdagi ob-havo yoqmaydimi?", ru: "Почему? Вам не нравится здешняя погода?", en: "Why? Don't you like the weather here?" },
+                    { speaker: "王一飞", hanzi: "我觉得冬天太冷了。", pinyin: "Wǒ juéde dōngtiān tài lěng le.", uz: "Mening fikrimcha, qish juda sovuq.", ru: "Мне кажется, зима слишком холодная.", en: "I think winter is too cold." },
+                    { speaker: "白家月", hanzi: "冬天虽然冷，但是下雪的时候特别漂亮。我也喜欢雪。北京常常下雪，但听说今年就下了一次。", pinyin: "Dōngtiān suīrán lěng, dànshì xiàxuě de shíhou tèbié piàoliang. Wǒ yě xǐhuan xuě. Běijīng chángcháng xiàxuě, dàn tīngshuō jīnnián jiù xià le yí cì.", uz: "Qish sovuq bo'lsa ham, qor yog'ganda juda chiroyli bo'ladi. Men ham qorni yaxshi ko'raman. Pekinda tez-tez qor yog'adi, lekin eshitishimcha bu yil atigi bir marta yog'ibdi.", ru: "Хотя зимой холодно, во время снегопада очень красиво. Я тоже люблю снег. В Пекине часто идет снег, но я слышала, что в этом году он шел только один раз.", en: "Although winter is cold, it is especially beautiful when it snows. I also like snow. It often snows in Beijing, but I heard it only snowed once this year." },
+                    { speaker: "王一飞", hanzi: "我没关注过北京的天气，但是新闻里说过，今年冬天很多地方雪下得都少了。", pinyin: "Wǒ méi guānzhù guo Běijīng de tiānqì, dànshì xīnwén lǐ shuō guo, jīnnián dōngtiān hěn duō dìfang xuě xià de dōu shǎo le.", uz: "Men Pekin ob-havosiga e'tibor bermagan ekanman, lekin yangiliklarda aytishlaricha, bu yil qishda ko'p joylarda qor kam yog'ibdi.", ru: "Я не обращал внимания на погоду в Пекине, но в новостях говорили, что этой зимой во многих местах снега выпало меньше.", en: "I haven't paid attention to the weather in Beijing, but the news said that it snowed less in many places this winter." }
+                ]
+            },
+            {
+                title: "4-matn / Текст 4 / Text 4",
+                lines: [
+                    { speaker: "王一飞", hanzi: "我离开北京到这里工作一年多了。这一年多住下来，我还是更喜欢北京的四季。北京的春天最舒服，天气不冷不热。夏天白天很热，但是晚上比较凉快。秋天树上的叶子都变成了红色、黄色，非常漂亮。冬天不但冷，而且风很大，我最不喜欢冬天。每个人都有自己最喜欢的季节，你最喜欢哪个季节呢？", pinyin: "Wǒ líkāi Běijīng dào zhèlǐ gōngzuò yì nián duō le. Zhè yì nián duō zhù xiàlái, wǒ háishi gèng xǐhuan Běijīng de sìjì. Běijīng de chūntiān zuì shūfu, tiānqì bù lěng bú rè. Xiàtiān báitiān hěn rè, dànshì wǎnshang bǐjiào liángkuai. Qiūtiān shù shang de yèzi dōu biànchéng le hóngsè、huángsè, fēicháng piàoliang. Dōngtiān búdàn lěng, érqiě fēng hěn dà, wǒ zuì bù xǐhuan dōngtiān. Měi gè rén dōu yǒu zìjǐ zuì xǐhuan de jìjié, nǐ zuì xǐhuan nǎge jìjié ne?", uz: "Pekindan ketib, bu yerda ishlayotganimga bir yildan oshdi. Bu yerda bir yildan ko'proq yashab, men baribir Pekinning to'rt faslini ko'proq yoqtiraman. Pekinda bahor eng qulay, ob-havo sovuq ham, issiq ham emas. Yozda kunduzi juda issiq, lekin kechasi ancha salqin. Kuzda daraxtlardagi barglar qizil, sariq rangga kiradi, juda chiroyli. Qish nafaqat sovuq, balki shamol ham kuchli, men qishni umuman yoqtirmayman. Har kimning o'z yoqtirgan fasli bor, sizga qaysi fasl ko'proq yoqadi?", ru: "Прошло больше года с тех пор, как я уехал из Пекина работать сюда. Пожив здесь больше года, я все еще больше люблю четыре сезона Пекина. Весна в Пекине самая комфортная, погода не холодная и не жаркая. Летом днем очень жарко, но ночью довольно прохладно. Осенью листья на деревьях становятся красными и желтыми, это очень красиво. Зима не только холодная, но и очень ветреная, я больше всего не люблю зиму. У каждого есть свой любимый сезон, а какой сезон больше всего нравится вам?", en: "It's been more than a year since I left Beijing to work here. After living here for over a year, I still prefer the four seasons of Beijing. Spring in Beijing is the most comfortable, the weather is neither cold nor hot. Summer days are very hot, but the nights are relatively cool. In autumn, the leaves on the trees turn red and yellow, which is very beautiful. Winter is not only cold, but also very windy, I dislike winter the most. Everyone has their favorite season, which season do you like the most?" }
+                ]
+            }
+        ];
+
+        const grammarData = [
+            {
+                title: "1. 选择复句“或者...或者...” (Yoki...yoki...)",
+                desc: {
+                    zh: "选择复句“或者...或者...”表示在两个或多个可能的选项中选择一个。",
+                    uz: "Ko'rsatilgan variantlardan birini tanlashni bildiradi.",
+                    ru: "Указывает на выбор между двумя или более возможностями.",
+                    en: "Indicates a choice between two or more possibilities."
+                },
+                examples: [
+                    { hanzi: "或者明天去，或者后天去，我给你打电话。", pinyin: "Huòzhě míngtiān qù, huòzhě hòutiān qù, wǒ gěi nǐ dǎ diànhuà.", uz: "Yoki ertaga boramiz, yoki indinga, men senga qo'ng'iroq qilaman.", ru: "Либо завтра, либо послезавтра, я тебе позвоню.", en: "We will go either tomorrow or the day after tomorrow, I will call you." },
+                    { hanzi: "我们或者今天去电影院看电影，或者明天在家看电影。", pinyin: "Wǒmen huòzhě jīntiān qù diànyǐngyuàn kàn diànyǐng, huòzhě míngtiān zài jiā kàn diànyǐng.", uz: "Biz yoki bugun kinoga boramiz, yoki ertaga uyda kino ko'ramiz.", ru: "Мы либо сегодня пойдем в кинотеатр, либо завтра посмотрим фильм дома.", en: "We will either go to the cinema today or watch a movie at home tomorrow." },
+                    { hanzi: "晚饭你自己选，或者吃中国菜，或者吃日本菜，或者吃泰国菜。", pinyin: "Wǎnfàn nǐ zìjǐ xuǎn, huòzhě chī Zhōngguó cài, huòzhě chī Rìběn cài, huòzhě chī Tàiguó cài.", uz: "Kechki ovqatni o'zing tanla, yoki xitoy taomini, yoki yapon taomini, yoki tay taomini yeymiz.", ru: "Ужин выбирай сам, либо китайскую еду, либо японскую, либо тайскую.", en: "You choose the dinner yourself, we'll eat either Chinese food, Japanese food, or Thai food." }
+                ]
+            },
+            {
+                title: "2. 趋向补语“起来” (-a boshladi / boshlanishi)",
+                desc: {
+                    zh: "趋向补语“起来”用在动词或形容词后，表示动作开始进行或进入一个新的状态。",
+                    uz: "Harakatning boshlanishini yoki yangi holatga o'tishni bildiradi.",
+                    ru: "Используется после глагола/прилагательного для указания начала действия или перехода в новое состояние.",
+                    en: "Used after a verb/adjective to indicate the start of an action or entry into a new state."
+                },
+                examples: [
+                    { hanzi: "雨已经下起来了。", pinyin: "Yǔ yǐjīng xià qǐlái le.", uz: "Yomg'ir yog'ishni boshladi.", ru: "Дождь уже начался.", en: "It has already started to rain." },
+                    { hanzi: "最近天气热起来了。", pinyin: "Zuìjìn tiānqì rè qǐlái le.", uz: "Yaqinda ob-havo isib ketdi (isishni boshladi).", ru: "В последнее время погода стала жаркой (начала теплеть).", en: "The weather has started to get hot recently." },
+                    { hanzi: "怎么突然刮起风来了？", pinyin: "Zěnme tūrán guā qǐ fēng lái le?", uz: "Qanday qilib birdan shamol esib qoldi?", ru: "Как вдруг поднялся ветер?", en: "How come the wind suddenly blew up?" }
+                ]
+            },
+            {
+                title: "3. 范围副词“就” (Faqatgina, atigi)",
+                desc: {
+                    zh: "范围副词“就”表示数量少、程度轻、时间短，或表示例外情况。",
+                    uz: "Miqdor kamligini, daraja pastligini, qisqa vaqtni yoki istisnoni bildiradi.",
+                    ru: "Указывает на небольшое количество, низкую степень, короткую продолжительность или исключение.",
+                    en: "Indicates small quantity, low degree, short duration, or an exception."
+                },
+                examples: [
+                    { hanzi: "北京常常下雪，但听说今年就下了一次。", pinyin: "Běijīng chángcháng xiàxuě, dàn tīngshuō jīnnián jiù xià le yí cì.", uz: "Pekinda tez-tez qor yog'adi, lekin eshitishimcha bu yil atigi bir marta yog'ibdi.", ru: "В Пекине часто идет снег, но я слышала, что в этом году он шел только один раз.", en: "It often snows in Beijing, but I heard it only snowed once this year." },
+                    { hanzi: "他昨天就看了十分钟书。", pinyin: "Tā zuótiān jiù kàn le shí fēnzhōng shū.", uz: "Kecha u atigi o'n daqiqa kitob o'qidi.", ru: "Вчера он читал книгу всего десять минут.", en: "He only read for ten minutes yesterday." },
+                    { hanzi: "我每天书包里都放着雨伞，就今天没带。", pinyin: "Wǒ měitiān shūbāo lǐ dōu fàngzhe yǔsǎn, jiù jīntiān méi dài.", uz: "Men har kuni sumkamga soyabon solib yuraman, faqat bugun olmadim.", ru: "Я каждый день ношу в рюкзаке зонтик, только сегодня не взяла.", en: "I keep an umbrella in my backpack every day, only today I didn't bring it." },
+                    { hanzi: "你们点的菜都挺好吃的，就我点的这个菜不太好吃。", pinyin: "Nǐmen diǎn de cài dōu tǐng hǎochī de, jiù wǒ diǎn de zhège cài bú tài hǎochī.", uz: "Sizlar buyurtma qilgan ovqatlarning hammasi juda mazali ekan, faqat men buyurtma qilgani uncha mazali emas.", ru: "Все блюда, которые вы заказали, очень вкусные, только то, что заказал я, не очень вкусное.", en: "All the dishes you ordered are quite delicious, only this dish I ordered is not very tasty." }
+                ]
+            },
+            {
+                title: "4. 趋向补语“下来” (Natijaga erishish / Davom etish)",
+                desc: {
+                    zh: "趋向补语“下来”用在动词后，表示完成一个费时、费力、需要克服一定困难的动作行为。",
+                    uz: "Ko'p vaqt va kuch talab qiladigan harakatning yakunlanishini bildiradi.",
+                    ru: "Указывает на завершение действия, требующего значительного времени или усилий.",
+                    en: "Indicates the completion of an action requiring considerable time or effort."
+                },
+                examples: [
+                    { hanzi: "这一年多住下来，我还是更喜欢北京的四季。", pinyin: "Zhè yì nián duō zhù xiàlái, wǒ háishi gèng xǐhuan Běijīng de sìjì.", uz: "Bu yerda bir yildan ko'proq yashab, men baribir Pekinning to'rt faslini ko'proq yoqtiraman.", ru: "Пожив здесь больше года, я все еще больше люблю четыре сезона Пекина.", en: "After living here for over a year, I still prefer the four seasons of Beijing." },
+                    { hanzi: "这半年练下来，他画画的水平提高了不少。", pinyin: "Zhè bàn nián liàn xiàlái, tā huàhuà de shuǐpíng tígāo le bù shǎo.", uz: "Bu yarim yillik mashg'ulotlardan so'ng, uning rasm chizish darajasi ancha yaxshilandi.", ru: "После полугода тренировок его уровень рисования значительно повысился.", en: "After half a year of practice, his drawing level has improved a lot." },
+                    { hanzi: "5000米的长跑比赛，没想到我跑下来了。", pinyin: "Wǔ qiān mǐ de chángpǎo bǐsài, méi xiǎngdào wǒ pǎo xiàlái le.", uz: "5000 metrlik masofaga yugurish musobaqasini, o'ylamagandimki, oxirigacha yugura olaman deb.", ru: "Соревнования по бегу на 5000 метров, не ожидал, что смогу добежать до конца.", en: "The 5000-meter long-distance race, I didn't expect I could finish it." }
+                ]
+            }
+        ];
+
+        const grammarTestQuestionsData = [
+            { q: "老师刚讲完笑话，大家都笑___了。", options: ["起来", "下来", "就", "或者"], ans: "起来" },
+            { q: "天气突然冷___了。", options: ["下来", "起来", "就", "或者"], ans: "起来" },
+            { q: "那么多好吃的，你怎么___吃了一点儿？", options: ["或者", "起来", "下来", "就"], ans: "就" },
+            { q: "这个任务很难，但他终于坚持___了。", options: ["下来", "就", "起来", "或者"], ans: "下来" },
+            { q: "我们___坐地铁去，___打车去。", options: ["就...就", "或者...或者", "起...来", "下...来"], ans: "或者...或者" },
+            { q: "他跑了五公里，终于跑___了。", options: ["起来", "或者", "下来", "就"], ans: "下来" },
+            { q: "刚才还是晴天，现在怎么下___雨了？", options: ["或者", "下来", "起来", "就"], ans: "起来" },
+            { q: "大家都来了，___他没来。", options: ["下来", "起来", "或者", "就"], ans: "就" },
+            { q: "周末我___在家看书，___去跟朋友踢球。", options: ["就...就", "或者...或者", "下...来", "起...来"], ans: "或者...或者" },
+            { q: "音乐响___了，大家开始跳舞。", options: ["下来", "或者", "就", "起来"], ans: "起来" },
+            { q: "这本书很厚，但我用了一个月终于读___了。", options: ["下来", "起来", "就", "或者"], ans: "下来" },
+            { q: "班里的同学都考得很好，___我不及格。", options: ["或者", "就", "起来", "下来"], ans: "就" },
+            { q: "孩子开心地唱起歌___。", options: ["下", "就", "来", "或者"], ans: "来" },
+            { q: "这么大的工程，他一个人做___了。", options: ["或者", "就", "起来", "下来"], ans: "下来" },
+            { q: "晚饭你选，___吃中国菜，___吃日本菜。", options: ["或者...或者", "就...就", "起...来", "下...来"], ans: "或者...或者" }
+        ];
+
+        const fillBlanksQuestionsData = [
+            { q: "这条___上的树很多。", options: ["街", "船", "伞", "风"], ans: "街" },
+            { q: "春天到了，所有的花都___了。", options: ["关注", "开花", "变", "借"], ans: "开花" },
+            { q: "孩子们喜欢在___里玩。", options: ["新闻", "季节", "公园", "工作日"], ans: "公园" },
+            { q: "我们去湖上坐___吧。", options: ["船", "伞", "街", "风"], ans: "船" },
+            { q: "今天是___，大家都去上班了。", options: ["季节", "地方", "新闻", "工作日"], ans: "工作日" },
+            { q: "你最喜欢去什么___旅游？", options: ["地方", "公园", "街", "季节"], ans: "地方" },
+            { q: "___还是大晴天，现在下雨了。", options: ["刚才", "常常", "关注", "变成"], ans: "刚才" },
+            { q: "外面___风了，有点冷。", options: ["借", "刮", "变", "把"], ans: "刮" },
+            { q: "今天的___很大，你听见声音了吗？", options: ["雨衣", "叶子", "风", "伞"], ans: "风" },
+            { q: "你看今天的___了吗？有什么大事？", options: ["四季", "季节", "新闻", "地方"], ans: "新闻" },
+            { q: "下雨了，出门别忘了带___。", options: ["伞", "船", "风", "叶子"], ans: "伞" },
+            { q: "我可以向你___一支笔吗？", options: ["刮", "借", "变", "关注"], ans: "借" },
+            { q: "房间里有一___红色的椅子。", options: ["把", "借", "变", "刮"], ans: "把" },
+            { q: "外面下雨了，你穿上___再出去。", options: ["叶子", "伞", "风", "雨衣"], ans: "雨衣" },
+            { q: "天气___冷了，多穿衣服。", options: ["刮", "变", "关注", "借"], ans: "变" },
+            { q: "一年有四个___。", options: ["新闻", "地方", "季节", "公园"], ans: "季节" },
+            { q: "这里的___很大，我快认不出来了。", options: ["变化", "刚才", "夏天", "四季"], ans: "变化" },
+            { q: "北京的___很冷，经常下雪。", options: ["春天", "夏天", "秋天", "冬天"], ans: "冬天" },
+            { q: "他___去图书馆看书。", options: ["刚才", "变化", "常常", "关注"], ans: "常常" },
+            { q: "请多___明天的天气预报。", options: ["借", "关注", "刮", "变"], ans: "关注" },
+            { q: "我最喜欢___，因为花都开了。", options: ["春天", "夏天", "冬天", "秋天"], ans: "春天" },
+            { q: "___太热了，去游泳吧。", options: ["冬天", "秋天", "春天", "夏天"], ans: "夏天" },
+            { q: "___的时候，树叶黄了。", options: ["春天", "秋天", "冬天", "夏天"], ans: "秋天" },
+            { q: "树上的___都落了。", options: ["伞", "风", "叶子", "雨衣"], ans: "叶子" },
+            { q: "雨后的空气非常___。", options: ["开花", "凉快", "常常", "关注"], ans: "凉快" }
+        ];
+
+        // --- TABS 配置 ---
+        const TABS = [
+            { id: 'flashcards', label: 'Fleshkarta' },
+            { id: 'vocabTest', label: "Lug'at testi" },
+            { id: 'dialogues', label: 'Muloqot' },
+            { id: 'grammar', label: 'Grammatika' },
+            { id: 'grammarTest', label: 'Grammatika testi' },
+            { id: 'fillBlanks', label: "So'zlarni to'ldirish" }
+        ];
+
+        // --- 图标组件 (SVG字符串) ---
+        const volumeIconHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 10V14H9L14 19V5L9 10H5z" /></svg>`;
+        const refreshIconHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>`;
+
+        // --- 核心辅助函数 ---
+        function playAudio(text) {
+            try {
+                if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 0.9;
+                    window.speechSynthesis.speak(utterance);
+                }
+            } catch (error) {
+                console.error("Audio playback failed:", error);
+            }
+        }
+
+        function shuffle(array) {
+            return array.slice().sort(() => Math.random() - 0.5);
+        }
+
+        // --- 标签页切换逻辑 ---
+        const baseTabClasses = "tab-btn snap-center shrink-0 px-4 py-3 rounded-xl font-semibold whitespace-nowrap text-sm sm:text-base border border-white/10";
+        const activeTabClasses = "bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 shadow-lg shadow-yellow-500/30";
+        const inactiveTabClasses = "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white";
+
+        function setupTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = TABS.map(tab => 
+                `<button data-tab="${tab.id}" onclick="switchTab('${tab.id}')" class="${baseTabClasses} ${inactiveTabClasses}">${tab.label}</button>`
+            ).join('');
+        }
+
+        function switchTab(tabId) {
+            // 更新按钮样式
+            document.querySelectorAll('#tabs-container button').forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    btn.className = `${baseTabClasses} ${activeTabClasses}`;
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    btn.className = `${baseTabClasses} ${inactiveTabClasses}`;
+                }
+            });
+
+            // 隐藏所有模块，显示目标模块
+            document.querySelectorAll('.section').forEach(sec => sec.classList.add('hidden'));
+            const targetSec = document.getElementById(`sec-${tabId}`);
+            targetSec.classList.remove('hidden');
+
+            // 如果内容为空则初始化
+            if (tabId === 'flashcards' && !targetSec.innerHTML) initFlashcards();
+            if (tabId === 'vocabTest' && !targetSec.innerHTML) initVocabTest();
+            if (tabId === 'dialogues' && !targetSec.innerHTML) initDialogues();
+            if (tabId === 'grammar' && !targetSec.innerHTML) initGrammar();
+            if (tabId === 'grammarTest' && !targetSec.innerHTML) initGramTest();
+            if (tabId === 'fillBlanks' && !targetSec.innerHTML) initFillTest();
+        }
+
+        // --- 闪卡模块 (Flashcards) ---
+        let currentCardIndex = 0;
+        let isCardFlipped = false;
+
+        function initFlashcards() {
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            const word = vocabData[currentCardIndex];
+            const transformStyle = isCardFlipped ? 'rotate-y-180' : '';
+            
+            const html = `
+                <div class="flex flex-col items-center justify-center w-full max-w-2xl mx-auto mt-8">
+                    <div class="w-full h-80 perspective-1000 cursor-pointer" onclick="flipCard()">
+                        <div id="flashcard-inner" class="relative w-full h-full transition-transform duration-500 transform-style-preserve-3d ${transformStyle}">
+                            
+                            <!-- 正面 -->
+                            <div class="absolute w-full h-full backface-hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl">
+                                <h2 class="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500 drop-shadow-sm mb-4">
+                                    ${word.hanzi}
+                                </h2>
+                                <button onclick="event.stopPropagation(); playAudio('${word.hanzi}');" class="mt-4 p-4 rounded-full bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/40 transition-colors">
+                                    ${volumeIconHTML}
+                                </button>
+                            </div>
+
+                            <!-- 背面 -->
+                            <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-slate-800 to-slate-900 border border-yellow-500/30 rounded-3xl p-8 flex flex-col items-center justify-center shadow-2xl text-center">
+                                <h3 class="text-4xl font-semibold text-yellow-400 mb-2">${word.pinyin}</h3>
+                                <div class="w-16 h-1 bg-white/10 rounded-full my-4 mx-auto"></div>
+                                <p class="text-2xl text-white mb-2 font-medium">${word.uz}</p>
+                                <p class="text-lg text-slate-400 mb-1">${word.ru}</p>
+                                <p class="text-lg text-slate-500 italic">${word.en}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center w-full mt-8 px-4">
+                        <button onclick="prevCard()" class="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium backdrop-blur-md transition-all">← Oldingi</button>
+                        <span class="text-slate-400 font-medium">${currentCardIndex + 1} / ${vocabData.length}</span>
+                        <button onclick="nextCard()" class="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium backdrop-blur-md transition-all">Keyingisi →</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('sec-flashcards').innerHTML = html;
+        }
+
+        window.flipCard = function() {
+            isCardFlipped = !isCardFlipped;
+            const inner = document.getElementById('flashcard-inner');
+            if (isCardFlipped) inner.classList.add('rotate-y-180');
+            else inner.classList.remove('rotate-y-180');
+        }
+
+        window.nextCard = function() {
+            isCardFlipped = false;
+            currentCardIndex = (currentCardIndex + 1) % vocabData.length;
+            renderFlashcard();
+        }
+
+        window.prevCard = function() {
+            isCardFlipped = false;
+            currentCardIndex = (currentCardIndex - 1 + vocabData.length) % vocabData.length;
+            renderFlashcard();
+        }
+
+        // --- 生词测试模块 (Vocab Test) ---
+        let vocabQuestions = [];
+        let vocabQIndex = 0;
+        let vocabScore = 0;
+
+        window.initVocabTest = function() {
+            let shuffled = shuffle([...vocabData]);
+            vocabQuestions = shuffled.map(word => {
+                let options = [word.uz];
+                let safeCounter = 0;
+                while (options.length < 4 && safeCounter < 50) {
+                    safeCounter++;
+                    let randUz = vocabData[Math.floor(Math.random() * vocabData.length)].uz;
+                    if (!options.includes(randUz)) options.push(randUz);
+                }
+                return { q: word.hanzi, ans: word.uz, options: shuffle(options) };
+            });
+            vocabQIndex = 0;
+            vocabScore = 0;
+            renderVocabTest();
+        }
+
+        function renderVocabTest() {
+            const container = document.getElementById('sec-vocabTest');
+            
+            if (vocabQIndex >= vocabQuestions.length) {
+                container.innerHTML = renderResultScreen(vocabScore, vocabQuestions.length, 'initVocabTest()');
+                return;
+            }
+
+            const q = vocabQuestions[vocabQIndex];
+            
+            // 安全机制：使用索引 (idx) 代替字符串传递，防止引号中断 HTML 属性
+            let optionsHtml = q.options.map((opt, idx) => `
+                <button onclick="handleVocabAnswer(${idx})" class="p-5 rounded-2xl bg-slate-800/50 hover:bg-yellow-500/20 border border-white/5 hover:border-yellow-500/50 text-white font-medium transition-all text-left">
+                    ${opt}
+                </button>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="max-w-2xl mx-auto mt-8">
+                    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
+                        <div class="flex justify-between items-center mb-8">
+                            <span class="text-yellow-500 font-bold tracking-wider">Savol ${vocabQIndex + 1} / ${vocabQuestions.length}</span>
+                            <span class="text-slate-400 text-sm">Lug'at Testi</span>
+                        </div>
+                        <div class="text-center mb-10">
+                            <h2 class="text-7xl font-bold text-white mb-4 drop-shadow-md">${q.q}</h2>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.handleVocabAnswer = function(optIndex) {
+            const selectedOpt = vocabQuestions[vocabQIndex].options[optIndex];
+            if (selectedOpt === vocabQuestions[vocabQIndex].ans) vocabScore++;
+            vocabQIndex++;
+            renderVocabTest();
+        }
+
+        // --- 对话模块 (Dialogues) ---
+        function initDialogues() {
+            const container = document.getElementById('sec-dialogues');
+            let html = '<div class="max-w-4xl mx-auto mt-8 space-y-12">';
+            
+            dialogsData.forEach(dialog => {
+                let linesHtml = dialog.lines.map(line => `
+                    <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors group">
+                        <div class="sm:w-1/4">
+                            <span class="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 font-semibold rounded-lg text-sm border border-yellow-500/30">
+                                ${line.speaker}
+                            </span>
+                        </div>
+                        <div class="sm:w-3/4">
+                            <div class="text-2xl text-white font-medium mb-1 flex items-center gap-3">
+                                <span>${line.hanzi}</span>
+                                <button onclick="playAudio('${line.hanzi}')" class="p-2 rounded-full bg-white/10 text-slate-300 hover:text-yellow-400 hover:bg-white/20 transition-all opacity-100 sm:opacity-0 group-hover:opacity-100 flex-shrink-0">
+                                    ${volumeIconHTML}
+                                </button>
+                            </div>
+                            <p class="text-yellow-200/80 mb-3 text-lg font-mono">${line.pinyin}</p>
+                            <div class="space-y-1 text-sm">
+                                <p class="text-emerald-400 font-medium">🇺🇿 ${line.uz}</p>
+                                <p class="text-blue-300">🇷🇺 ${line.ru}</p>
+                                <p class="text-slate-400 italic">🇬🇧 ${line.en}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                html += `
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                        <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-6 border-b border-white/10 flex items-center justify-between">
+                            <h2 class="text-2xl font-bold text-yellow-400">${dialog.title}</h2>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            ${linesHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // --- 语法模块 (Grammar) ---
+        function initGrammar() {
+            const container = document.getElementById('sec-grammar');
+            let html = '<div class="max-w-4xl mx-auto mt-8 space-y-8">';
+            
+            grammarData.forEach(item => {
+                let examplesHtml = item.examples.map(ex => `
+                    <div class="bg-slate-900/50 p-5 rounded-2xl flex items-start gap-4 group">
+                        <button onclick="playAudio('${ex.hanzi}')" class="mt-1 p-2 flex-shrink-0 rounded-full bg-white/5 text-slate-400 hover:text-yellow-400 hover:bg-white/10 transition-colors">
+                            ${volumeIconHTML}
+                        </button>
+                        <div class="w-full">
+                            <p class="text-xl text-white font-medium">${ex.hanzi}</p>
+                            <p class="text-yellow-200/70 font-mono my-1 mb-3">${ex.pinyin}</p>
+                            <div class="space-y-1 text-sm bg-black/20 p-3 rounded-xl border border-white/5">
+                                <p class="text-emerald-400 font-medium">🇺🇿 ${ex.uz}</p>
+                                <p class="text-blue-300">🇷🇺 ${ex.ru}</p>
+                                <p class="text-slate-400 italic">🇬🇧 ${ex.en}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                html += `
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-xl">
+                        <h2 class="text-2xl font-bold text-yellow-400 mb-4">${item.title}</h2>
+                        <div class="text-slate-300 mb-6 text-sm border-l-4 border-yellow-500 pl-4 space-y-2">
+                            <p class="text-white font-medium text-base">🇨🇳 ${item.desc.zh}</p>
+                            <p class="text-emerald-400">🇺🇿 ${item.desc.uz}</p>
+                            <p class="text-blue-300">🇷🇺 ${item.desc.ru}</p>
+                            <p class="text-slate-400 italic">🇬🇧 ${item.desc.en}</p>
+                        </div>
+                        <div class="space-y-4">
+                            ${examplesHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // --- 语法测试模块 (Grammar Test) ---
+        let gramTestQuestions = [];
+        let gramQIndex = 0;
+        let gramScore = 0;
+
+        window.initGramTest = function() {
+            gramTestQuestions = shuffle([...grammarTestQuestionsData]);
+            gramQIndex = 0;
+            gramScore = 0;
+            renderGramTest();
+        }
+
+        function renderGramTest() {
+            const container = document.getElementById('sec-grammarTest');
+            
+            if (gramQIndex >= gramTestQuestions.length) {
+                container.innerHTML = renderResultScreen(gramScore, gramTestQuestions.length, 'initGramTest()');
+                return;
+            }
+
+            const q = gramTestQuestions[gramQIndex];
+            
+            let optionsHtml = q.options.map((opt, idx) => `
+                <button onclick="handleGramAnswer(${idx})" class="p-5 rounded-2xl bg-slate-800/50 hover:bg-yellow-500/20 border border-white/5 hover:border-yellow-500/50 text-white font-medium text-xl transition-all">
+                    ${opt}
+                </button>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="max-w-2xl mx-auto mt-8">
+                    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
+                        <div class="flex justify-between items-center mb-8">
+                            <span class="text-yellow-500 font-bold tracking-wider">Savol ${gramQIndex + 1} / ${gramTestQuestions.length}</span>
+                            <span class="text-slate-400 text-sm">Grammatika Testi</span>
+                        </div>
+                        <div class="text-center mb-10">
+                            <h2 class="text-4xl font-medium text-white mb-4 leading-relaxed">${q.q}</h2>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.handleGramAnswer = function(optIndex) {
+            const selectedOpt = gramTestQuestions[gramQIndex].options[optIndex];
+            if (selectedOpt === gramTestQuestions[gramQIndex].ans) gramScore++;
+            gramQIndex++;
+            renderGramTest();
+        }
+
+        // --- 填空练习模块 (Fill Blanks Test) ---
+        let fillTestQuestions = [];
+        let fillQIndex = 0;
+        let fillScore = 0;
+
+        window.initFillTest = function() {
+            fillTestQuestions = shuffle([...fillBlanksQuestionsData]);
+            fillQIndex = 0;
+            fillScore = 0;
+            renderFillTest();
+        }
+
+        function renderFillTest() {
+            const container = document.getElementById('sec-fillBlanks');
+            
+            if (fillQIndex >= fillTestQuestions.length) {
+                container.innerHTML = renderResultScreen(fillScore, fillTestQuestions.length, 'initFillTest()');
+                return;
+            }
+
+            const q = fillTestQuestions[fillQIndex];
+            
+            let optionsHtml = q.options.map((opt, idx) => `
+                <button onclick="handleFillAnswer(${idx})" class="p-5 rounded-2xl bg-slate-800/50 hover:bg-emerald-500/20 border border-white/5 hover:border-emerald-500/50 text-white font-medium text-xl transition-all">
+                    ${opt}
+                </button>
+            `).join('');
+
+            const formattedQuestion = q.q.split('___').join('<span class="inline-block w-16 border-b-2 border-yellow-500 mx-2 mb-1"></span>');
+
+            container.innerHTML = `
+                <div class="max-w-2xl mx-auto mt-8">
+                    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl">
+                        <div class="flex justify-between items-center mb-8">
+                            <span class="text-yellow-500 font-bold tracking-wider">Savol ${fillQIndex + 1} / ${fillTestQuestions.length}</span>
+                            <span class="text-slate-400 text-sm">So'zlarni to'ldirish</span>
+                        </div>
+                        <div class="text-center mb-10">
+                            <h2 class="text-4xl font-medium text-white mb-4 leading-relaxed">${formattedQuestion}</h2>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.handleFillAnswer = function(optIndex) {
+            const selectedOpt = fillTestQuestions[fillQIndex].options[optIndex];
+            if (selectedOpt === fillTestQuestions[fillQIndex].ans) fillScore++;
+            fillQIndex++;
+            renderFillTest();
+        }
+
+        // --- 结果画面渲染辅助 ---
+        function renderResultScreen(score, total, retryFnStr) {
+            return `
+                <div class="text-center p-12 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl max-w-xl mx-auto mt-12">
+                    <h2 class="text-4xl font-bold text-white mb-4">Natija!</h2>
+                    <p class="text-2xl text-yellow-400 mb-8">${score} / ${total} to'g'ri javob</p>
+                    <button onclick="${retryFnStr}" class="flex items-center justify-center mx-auto space-x-2 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-full font-bold transition-all shadow-lg shadow-yellow-500/20">
+                        ${refreshIconHTML}
+                        <span>Qayta urinish</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- 初始化入口 ---
+        window.onload = () => {
+            setupTabs();
+            switchTab('flashcards');
+        };
+
+    </script>
+</body>
+</html>
